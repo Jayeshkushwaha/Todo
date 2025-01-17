@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -42,24 +42,35 @@ const MovieDetailsScreen = ({ route }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <Image
-                source={{ uri: movie.poster_path?`https://image.tmdb.org/t/p/w500${movie.poster_path}`:`https://image.tmdb.org/t/p/w500${movie.posterUrl}` }}
-                style={styles.poster}
-            />
-            <Text style={styles.title}>{movie.title}</Text>
-            <Text style={styles.overview}>{movie.overview}</Text>
-            <Text style={styles.releaseDate}>Release Date: {movie.release_date}</Text>
-            <TouchableOpacity onPress={toggleFavorite} style={styles.favoriteButton}>
-                <Icon name={isFavorite ? 'heart' : 'heart-outline'} size={30} color="red" />
-            </TouchableOpacity>
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.container}>
+                <Image
+                    source={{
+                        uri: movie.poster_path
+                            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                            : `https://image.tmdb.org/t/p/w500${movie.posterUrl}`,
+                    }}
+                    style={styles.poster}
+                />
+                <Text style={styles.title}>{movie.title}</Text>
+                <Text style={styles.overview}>{movie.overview}</Text>
+                <Text style={styles.releaseDate}>Release Date: {movie.release_date}</Text>
+                <TouchableOpacity onPress={toggleFavorite} style={styles.favoriteButton}>
+                    <Icon name={isFavorite ? 'heart' : 'heart-outline'} size={30} color="red" />
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
     );
 };
 
 export default MovieDetailsScreen;
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     container: {
         flex: 1,
         padding: 20,
