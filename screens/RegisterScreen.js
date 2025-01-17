@@ -14,6 +14,8 @@ import auth from "@react-native-firebase/auth";
 
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
+import firestore from '@react-native-firebase/firestore';
+
 const RegisterScreen = ({ navigation }) => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -93,19 +95,19 @@ const RegisterScreen = ({ navigation }) => {
         return true;
     };
 
-    const handleSubmitButton = () => {
+    const handleSubmitButton = async () => {
         setErrortext("");
-
+    
         const nameRegex = /^[a-zA-Z]{2,30}$/;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         const addressRegex = /^[a-zA-Z0-9\s,.'-]{3,}$/;
-
+    
         if (!imageUri) {
             setErrortext("Please select an Image");
             return;
         }
-
+    
         if (!firstName) {
             setErrortext("Please fill First Name");
             return;
@@ -114,7 +116,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("First Name should only contain letters and be 2-30 characters long");
             return;
         }
-
+    
         if (!lastName) {
             setErrortext("Please fill Last Name");
             return;
@@ -123,7 +125,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Last Name should only contain letters and be 2-30 characters long");
             return;
         }
-
+    
         if (!userEmail) {
             setErrortext("Please fill Email");
             return;
@@ -132,16 +134,16 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Please enter a valid email address");
             return;
         }
-
+    
         if (!Password) {
             setErrortext("Please fill Password");
             return;
         }
         if (!passwordRegex.test(Password)) {
-            setErrortext("Password must contain at least 8 characters, including uppercase, lowercase, number and special character");
+            setErrortext("Password must contain at least 8 characters, including uppercase, lowercase, number, and special character");
             return;
         }
-
+    
         if (!confirmPassword) {
             setErrortext("Please fill Confirm Password");
             return;
@@ -150,7 +152,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Password and Confirm Password must match");
             return;
         }
-
+    
         if (!address) {
             setErrortext("Please fill Address");
             return;
@@ -159,29 +161,30 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Please enter a valid address");
             return;
         }
-
-        auth()
-            .createUserWithEmailAndPassword(
-                userEmail,
-                confirmPassword
-            )
-            .then((user) => {
-                alert(
-                    "Registration Successful. Please Login to proceed"
-                );
-                console.log(user);
-                navigation.navigate("LoginScreen")
-            })
-            .catch((error) => {
-                console.log(error);
-                if (error.code === "auth/email-already-in-use") {
-                    setErrortext(
-                        "That email address is already in use!"
-                    );
-                } else {
-                    setErrortext(error.message);
-                }
+    
+        try {
+            const userCredential = await auth().createUserWithEmailAndPassword(userEmail, Password);
+            const userId = userCredential.user.uid;
+    
+            await firestore().collection('users').doc(userId).set({
+                firstName,
+                lastName,
+                email: userEmail,
+                address,
+                imageUri,
+                createdAt: firestore.FieldValue.serverTimestamp(),
             });
+    
+            alert("Registration Successful. Please Login to proceed");
+            navigation.navigate("LoginScreen");
+        } catch (error) {
+            console.log(error);
+            if (error.code === "auth/email-already-in-use") {
+                setErrortext("That email address is already in use!");
+            } else {
+                setErrortext(error.message);
+            }
+        }
     };
 
     return (
