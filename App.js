@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
+import EncryptedStorage from "react-native-encrypted-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./screens/LoginScreen";
@@ -26,9 +28,37 @@ const Auth = () => {
 };
 
 const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkLoginState = async () => {
+      try {
+        const userToken = await EncryptedStorage.getItem("user_token");
+        if (userToken) {
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.error("Error checking login state:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkLoginState();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Auth">
+      <Stack.Navigator initialRouteName={isLoggedIn ? "Tabs" : "Auth"}>
         <Stack.Screen
           name="Auth"
           component={Auth}
@@ -39,12 +69,11 @@ const App = () => {
           component={Tabs}
           options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="MovieDetails" 
-          component={MovieDetailsScreen} 
-          options={{ title: 'Movie Details' }} 
+        <Stack.Screen
+          name="MovieDetails"
+          component={MovieDetailsScreen}
+          options={{ title: "Movie Details" }}
         />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
