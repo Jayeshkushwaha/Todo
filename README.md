@@ -49,6 +49,8 @@ cd ios && pod install
    - Download the `google-services.json` (for Android) or `GoogleService-Info.plist` (for iOS).
    - Place these files in the respective folders:
      - `android/app/` for `google-services.json`
+     - add `classpath('com.google.gms:google-services:4.4.2')` in `android/build.gradle`
+     - add `apply plugin: 'com.google.gms.google-services'` , `implementation("com.google.firebase:firebase-auth")` and `implementation platform('com.google.firebase:firebase-bom:33.7.0')` in `android/app/build.gradle`
      - `ios/` for `GoogleService-Info.plist`
 
 ### **Run the App**
