@@ -5,26 +5,74 @@ import firestore from '@react-native-firebase/firestore';
 const FavoritesScreen = ({ navigation }) => {
     const [favorites, setFavorites] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
+
+    const PAGE_SIZE = 10;
 
     useEffect(() => {
-        const unsubscribe = fetchFavorites();
-        return () => unsubscribe();
+        fetchFavorites();
     }, []);
 
-    const fetchFavorites = () => {
-        return firestore()
-            .collection('favorites')
-            .onSnapshot((snapshot) => {
-                const fetchedFavorites = snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-                setFavorites(fetchedFavorites);
-                setLoading(false);
-            }, (error) => {
-                console.error('Error fetching favorites:', error);
-                setLoading(false);
-            });
+    const fetchFavorites = async () => {
+        setLoading(true);
+        try {
+            const query = firestore()
+                .collection('favorites')
+                .orderBy('title')
+                .limit(PAGE_SIZE);
+
+            const snapshot = await query.get();
+            const fetchedFavorites = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            setFavorites(fetchedFavorites);
+            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            setHasMore(snapshot.docs.length === PAGE_SIZE);
+        } catch (error) {
+            console.error('Error fetching favorites:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchMoreFavorites = async () => {
+        if (!hasMore || loadingMore) return;
+
+        setLoadingMore(true);
+        try {
+            const query = firestore()
+                .collection('favorites')
+                .orderBy('title')
+                .startAfter(lastVisible)
+                .limit(PAGE_SIZE);
+
+            const snapshot = await query.get();
+            const fetchedFavorites = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            setFavorites((prevFavorites) => [...prevFavorites, ...fetchedFavorites]);
+            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            setHasMore(snapshot.docs.length === PAGE_SIZE);
+        } catch (error) {
+            console.error('Error fetching more favorites:', error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    const renderFooter = () => {
+        if (!loadingMore) return null;
+        return (
+            <View style={styles.footer}>
+                <ActivityIndicator size="small" color="#0000ff" />
+            </View>
+        );
     };
 
     const renderFavoriteItem = ({ item }) => (
@@ -44,7 +92,7 @@ const FavoritesScreen = ({ navigation }) => {
         </TouchableOpacity>
     );
 
-    if (loading) {
+    if (loading && favorites.length === 0) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#0000ff" />
@@ -52,7 +100,7 @@ const FavoritesScreen = ({ navigation }) => {
         );
     }
 
-    if (favorites.length === 0) {
+    if (!loading && favorites.length === 0) {
         return (
             <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>No favorite movies added yet!</Text>
@@ -66,6 +114,9 @@ const FavoritesScreen = ({ navigation }) => {
             keyExtractor={(item) => item.id}
             renderItem={renderFavoriteItem}
             contentContainerStyle={styles.listContainer}
+            onEndReached={fetchMoreFavorites}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
         />
     );
 };
@@ -114,5 +165,9 @@ const styles = StyleSheet.create({
     movieOverview: {
         fontSize: 14,
         color: '#555',
+    },
+    footer: {
+        paddingVertical: 10,
+        alignItems: 'center',
     },
 });
