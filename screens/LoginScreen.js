@@ -42,7 +42,7 @@ const LoginScreen = ({ navigation }) => {
             .signInWithEmailAndPassword(userEmail, userPassword)
             .then((user) => {
                 console.log(user);
-                if (user) navigation.replace("HomeScreen");
+                if (user) navigation.replace("Tabs");
             })
             .catch((error) => {
                 console.log(error);
