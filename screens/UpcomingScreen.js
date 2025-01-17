@@ -2,49 +2,71 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 
-const UpcomingScreen = ({navigation}) => {
+const UpcomingScreen = ({ navigation }) => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     useEffect(() => {
-        fetchNowPlayingMovies();
-    }, []);
+        fetchUpcomingMovies(page);
+    }, [page]);
 
-    const fetchNowPlayingMovies = async () => {
+    const fetchUpcomingMovies = async (page) => {
         try {
             const response = await axios.get(`https://api.themoviedb.org/3/movie/upcoming`, {
                 params: {
                     api_key: "3224b679c26741312a6db19c249e87ae",
                     language: 'en-US',
-                    page: 1,
+                    page,
                 },
             });
-            setMovies(response.data.results);
+
+            setMovies((prevMovies) => [...prevMovies, ...response.data.results]);
+            setTotalPages(response.data.total_pages);
         } catch (error) {
-            console.error('Error fetching now playing movies:', error);
+            console.error('Error fetching upcoming movies:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
+    };
+
+    const handleLoadMore = () => {
+        if (!loadingMore && page < totalPages) {
+            setLoadingMore(true);
+            setPage((prevPage) => prevPage + 1);
+        }
+    };
+
+    const renderFooter = () => {
+        if (!loadingMore) return null;
+        return (
+            <View style={styles.footer}>
+                <ActivityIndicator size="small" color="#0000ff" />
+            </View>
+        );
     };
 
     const renderMovieItem = ({ item }) => (
         <TouchableOpacity onPress={() => navigation.navigate('MovieDetails', { movie: item })}>
-        <View style={styles.movieContainer}>
-            <Image
-                source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
-                style={styles.moviePoster}
-            />
-            <View style={styles.movieDetails}>
-                <Text style={styles.movieTitle}>{item.title}</Text>
-                <Text style={styles.movieOverview} numberOfLines={3}>
-                    {item.overview}
-                </Text>
+            <View style={styles.movieContainer}>
+                <Image
+                    source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+                    style={styles.moviePoster}
+                />
+                <View style={styles.movieDetails}>
+                    <Text style={styles.movieTitle}>{item.title}</Text>
+                    <Text style={styles.movieOverview} numberOfLines={3}>
+                        {item.overview}
+                    </Text>
+                </View>
             </View>
-        </View>
         </TouchableOpacity>
     );
 
-    if (loading) {
+    if (loading && page === 1) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#0000ff" />
@@ -58,6 +80,9 @@ const UpcomingScreen = ({navigation}) => {
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderMovieItem}
             contentContainerStyle={styles.listContainer}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
         />
     );
 };
@@ -97,5 +122,9 @@ const styles = StyleSheet.create({
     movieOverview: {
         fontSize: 14,
         color: '#555',
+    },
+    footer: {
+        paddingVertical: 10,
+        alignItems: 'center',
     },
 });
