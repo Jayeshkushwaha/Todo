@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import auth from "@react-native-firebase/auth";
+import EncryptedStorage from "react-native-encrypted-storage";
 
 const LoginScreen = ({ navigation }) => {
     const [userEmail, setUserEmail] = useState("");
@@ -40,8 +41,12 @@ const LoginScreen = ({ navigation }) => {
 
         auth()
             .signInWithEmailAndPassword(userEmail, userPassword)
-            .then((user) => {
+            .then(async (user) => {
                 console.log(user);
+                if (user) await EncryptedStorage.setItem(
+                    "user_token",
+                    JSON.stringify({ email: userEmail, token: "secure-auth-token" })
+                  );
                 if (user) navigation.replace("Tabs");
             })
             .catch((error) => {
