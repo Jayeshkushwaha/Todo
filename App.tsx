@@ -1,12 +1,10 @@
-import "react-native-gesture-handler";
-
 import React from "react";
-
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import Tabs from "./Tabs";
+import MovieDetailsScreen from "./screens/MovieDetailsScreen";
 
 const Stack = createStackNavigator();
 
@@ -41,6 +39,12 @@ const App = () => {
           component={Tabs}
           options={{ headerShown: false }}
         />
+        <Stack.Screen 
+          name="MovieDetails" 
+          component={MovieDetailsScreen} 
+          options={{ title: 'Movie Details' }} 
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
