@@ -85,3 +85,10 @@ yarn ios
 - **Navigation**: React Navigation
 
 ---
+![Screenshot_1737096012](https://github.com/user-attachments/assets/ee0d4e5b-7c89-43ed-9cfd-4feac5dadaa9)
+![Screenshot_1737096029](https://github.com/user-attachments/assets/f64cd5b3-d9c8-4a95-80dd-61f3fd567587)
+![Screenshot_1737096111](https://github.com/user-attachments/assets/7a7103c4-d300-4a93-b426-4494334583ad)
+![Screenshot_1737096118](https://github.com/user-attachments/assets/867eb6f0-9087-4822-b768-9b4c5f6a2906)
+![Screenshot_1737096124](https://github.com/user-attachments/assets/053c05c1-3c8f-4a03-bbbe-df51902f24e8)
+![Screenshot_1737096133](https://github.com/user-attachments/assets/dbe30446-7479-48d4-86cc-31cfe58d2339)
+![Screenshot_1737104195-o1ygxkabsibk5jcjf86o6npthr](https://github.com/user-attachments/assets/b8983525-904c-4dde-85d2-1017aa0b0307)
