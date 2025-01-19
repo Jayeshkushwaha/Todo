@@ -250,7 +250,7 @@ const RegisterScreen = ({ navigation }) => {
                     </View>
                 </View>
                 <View style={styles.inputContainer}>
-                    <TextInput style={styles.input} placeholder="Address" secureTextEntry={true} onChangeText={(text) => setAddress(text)} />
+                    <TextInput style={styles.input} placeholder="Address" onChangeText={(text) => setAddress(text)} />
                 </View>
 
                 {errortext != "" ? (
