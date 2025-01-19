@@ -6,7 +6,7 @@ import {
     TextInput,
     TouchableOpacity,
 } from 'react-native';
-
+import Icon from 'react-native-vector-icons/Ionicons';
 import auth from "@react-native-firebase/auth";
 import EncryptedStorage from "react-native-encrypted-storage";
 
@@ -14,6 +14,7 @@ const LoginScreen = ({ navigation }) => {
     const [userEmail, setUserEmail] = useState("");
     const [userPassword, setUserPassword] = useState("");
     const [errortext, setErrortext] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmitPress = () => {
         setErrortext("");
@@ -46,7 +47,7 @@ const LoginScreen = ({ navigation }) => {
                 if (user) await EncryptedStorage.setItem(
                     "user_token",
                     JSON.stringify({ email: userEmail, token: "secure-auth-token" })
-                  );
+                );
                 if (user) navigation.replace("Tabs");
             })
             .catch((error) => {
@@ -66,13 +67,40 @@ const LoginScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.card}>
-                <TextInput style={styles.input} onChangeText={(UserEmail) => setUserEmail(UserEmail)} placeholder="Email" />
-                <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(UserPassword) => setUserPassword(UserPassword)} />
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={(UserEmail) => setUserEmail(UserEmail)}
+                        placeholder="Email"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                </View>
+
+                <View style={styles.inputContainer}>
+                    <View style={styles.passwordWrapper}>
+                        <TextInput
+                            style={[styles.input, { flex: 1 }]}
+                            placeholder="Password"
+                            secureTextEntry={!showPassword}
+                            onChangeText={(UserPassword) => setUserPassword(UserPassword)}
+                        />
+                        <TouchableOpacity
+                            onPress={() => setShowPassword(!showPassword)}
+                            style={styles.iconContainer}
+                        >
+                            <Icon
+                                name={showPassword ? "eye-off" : "eye"}
+                                size={20}
+                                color="#888"
+                            />
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
                 {errortext != "" ? (
                     <Text style={styles.errorTextStyle}>
-                        {" "}
-                        {errortext}{" "}
+                        {errortext}
                     </Text>
                 ) : null}
 
@@ -80,7 +108,10 @@ const LoginScreen = ({ navigation }) => {
                     <Text style={styles.buttonText}>LOGIN</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.createAccountButton} onPress={() => navigation.navigate("RegisterScreen")}>
+                <TouchableOpacity
+                    style={styles.createAccountButton}
+                    onPress={() => navigation.navigate("RegisterScreen")}
+                >
                     <Text style={styles.createAccountButtonText}>CREATE ACCOUNT</Text>
                 </TouchableOpacity>
             </View>
@@ -94,30 +125,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    header: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 50,
-        paddingBottom: 20,
-        width: '100%',
-        height: 200,
-    },
-    heading: {
-        fontSize: 30,
-        fontWeight: 'bold',
-        color: '#fff',
-        marginBottom: 10,
-    },
-    forgotPasswordButton: {
-        width: '100%',
-        textAlign: 'flex-end',
-    },
-    forgotPasswordButtonText: {
-        color: '#20B2AA',
-        fontSize: 12,
-        fontWeight: 'bold',
-        textAlign: 'right'
     },
     card: {
         backgroundColor: '#fff',
@@ -135,13 +142,31 @@ const styles = StyleSheet.create({
         width: '90%',
         alignItems: 'center',
     },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
+    inputContainer: {
+        backgroundColor: '#f8f8f8',
+        borderRadius: 10,
+        paddingHorizontal: 10,
         marginVertical: 10,
         width: '100%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    input: {
+        height: 40,
+        fontSize: 14,
+        color: '#333',
+    },
+    passwordWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 5,
     },
     button: {
         backgroundColor: '#20B2AA',

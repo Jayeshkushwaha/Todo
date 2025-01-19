@@ -9,12 +9,10 @@ import {
     Image,
     Platform
 } from 'react-native';
-
 import auth from "@react-native-firebase/auth";
-
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-
 import firestore from '@react-native-firebase/firestore';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const RegisterScreen = ({ navigation }) => {
     const [firstName, setFirstName] = useState("");
@@ -25,6 +23,8 @@ const RegisterScreen = ({ navigation }) => {
     const [address, setAddress] = useState("");
     const [errortext, setErrortext] = useState("");
     const [imageUri, setImageUri] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setConfirmShowPassword] = useState(false);
 
     const handleGalleryLaunch = () => {
         const options = {
@@ -97,17 +97,17 @@ const RegisterScreen = ({ navigation }) => {
 
     const handleSubmitButton = async () => {
         setErrortext("");
-    
+
         const nameRegex = /^[a-zA-Z]{2,30}$/;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         const addressRegex = /^[a-zA-Z0-9\s,.'-]{3,}$/;
-    
+
         if (!imageUri) {
             setErrortext("Please select an Image");
             return;
         }
-    
+
         if (!firstName) {
             setErrortext("Please fill First Name");
             return;
@@ -116,7 +116,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("First Name should only contain letters and be 2-30 characters long");
             return;
         }
-    
+
         if (!lastName) {
             setErrortext("Please fill Last Name");
             return;
@@ -125,7 +125,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Last Name should only contain letters and be 2-30 characters long");
             return;
         }
-    
+
         if (!userEmail) {
             setErrortext("Please fill Email");
             return;
@@ -134,7 +134,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Please enter a valid email address");
             return;
         }
-    
+
         if (!Password) {
             setErrortext("Please fill Password");
             return;
@@ -143,7 +143,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Password must contain at least 8 characters, including uppercase, lowercase, number, and special character");
             return;
         }
-    
+
         if (!confirmPassword) {
             setErrortext("Please fill Confirm Password");
             return;
@@ -152,7 +152,7 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Password and Confirm Password must match");
             return;
         }
-    
+
         if (!address) {
             setErrortext("Please fill Address");
             return;
@@ -161,11 +161,11 @@ const RegisterScreen = ({ navigation }) => {
             setErrortext("Please enter a valid address");
             return;
         }
-    
+
         try {
             const userCredential = await auth().createUserWithEmailAndPassword(userEmail, Password);
             const userId = userCredential.user.uid;
-    
+
             await firestore().collection('users').doc(userId).set({
                 firstName,
                 lastName,
@@ -174,7 +174,7 @@ const RegisterScreen = ({ navigation }) => {
                 imageUri,
                 createdAt: firestore.FieldValue.serverTimestamp(),
             });
-    
+
             alert("Registration Successful. Please Login to proceed");
             navigation.navigate("LoginScreen");
         } catch (error) {
@@ -210,12 +210,48 @@ const RegisterScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                <TextInput style={styles.input} onChangeText={(text) => setFirstName(text)} placeholder="First Name" />
-                <TextInput style={styles.input} onChangeText={(text) => setLastName(text)} placeholder="Last Name" />
-                <TextInput style={styles.input} onChangeText={(text) => setUserEmail(text)} placeholder="Email" />
-                <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />
-                <TextInput style={styles.input} placeholder="Confirm Password" secureTextEntry={true} onChangeText={(text) => setConfirmPassword(text)} />
-                <TextInput style={styles.input} placeholder="Address" secureTextEntry={true} onChangeText={(text) => setAddress(text)} />
+                <View style={styles.inputContainer}>
+                    <TextInput style={styles.input} onChangeText={(text) => setFirstName(text)} placeholder="First Name" />
+                </View>
+                <View style={styles.inputContainer}>
+                    <TextInput style={styles.input} onChangeText={(text) => setLastName(text)} placeholder="Last Name" />
+                </View>
+                <View style={styles.inputContainer}>
+                    <TextInput style={styles.input} onChangeText={(text) => setUserEmail(text)} placeholder="Email" />
+                </View>
+                <View style={styles.inputContainer}>
+                    <View style={styles.passwordWrapper}>
+                        <TextInput style={[styles.input, { flex: 1 }]} placeholder="Password" secureTextEntry={!showPassword} onChangeText={(text) => setPassword(text)} />
+                        <TouchableOpacity
+                            onPress={() => setShowPassword(!showPassword)}
+                            style={styles.iconContainer}
+                        >
+                            <Icon
+                                name={showPassword ? "eye-off" : "eye"}
+                                size={20}
+                                color="#888"
+                            />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={styles.inputContainer}>
+                    <View style={styles.passwordWrapper}>
+                        <TextInput style={[styles.input, { flex: 1 }]} placeholder="Confirm Password" secureTextEntry={!showConfirmPassword} onChangeText={(text) => setConfirmPassword(text)} />
+                        <TouchableOpacity
+                            onPress={() => setConfirmShowPassword(!showConfirmPassword)}
+                            style={styles.iconContainer}
+                        >
+                            <Icon
+                                name={showConfirmPassword ? "eye-off" : "eye"}
+                                size={20}
+                                color="#888"
+                            />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={styles.inputContainer}>
+                    <TextInput style={styles.input} placeholder="Address" secureTextEntry={true} onChangeText={(text) => setAddress(text)} />
+                </View>
 
                 {errortext != "" ? (
                     <Text style={styles.errorTextStyle}>
@@ -279,13 +315,31 @@ const styles = StyleSheet.create({
         width: '90%',
         alignItems: 'center',
     },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        padding: 10,
+    iconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 5,
+    },
+    passwordWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    inputContainer: {
+        backgroundColor: '#f8f8f8',
+        borderRadius: 10,
+        paddingHorizontal: 10,
         marginVertical: 10,
         width: '100%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    input: {
+        height: 40,
+        fontSize: 14,
+        color: '#333',
     },
     button: {
         backgroundColor: '#20B2AA',
